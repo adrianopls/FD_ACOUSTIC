@@ -27,16 +27,21 @@ class SGAnimation:
         
         self.steps = kwargs['steps']
 
-  
+
+        title = kwargs['title']
+
+
         # Receiver Position
-        self._xrec1 = 110
-        self._yrec1 = 110   # Position Reciever 1 (in grid points)
+        self._xrec1 = kwargs['x_rec1'] 
+        self._yrec1 = kwargs['y_rec1']    # Position Reciever 1 (in grid points)
         
-        self._xrec2 = 128
-        self._yrec2 = 150  # Position Reciever 2 (in grid points)
+        self._xrec2 = kwargs['x_rec2'] 
+        self._yrec2 = kwargs['y_rec2']    # Position Reciever 2 (in grid points)
         
-        self._xrec3 = 180
-        self._yrec3 = 180  # Position Reciever 3 (in grid points)
+        self._xrec3 = kwargs['x_rec3'] 
+        self._yrec3 = kwargs['y_rec3']    # Position Reciever 3 (in grid points)
+
+
 
         # No vetor grid, pontos com valor 1 estao associados a Fase 1 (rocha,
         # cor preta). Os pontos com valor 0 estao associados a Fase 2 (poros,
@@ -63,15 +68,15 @@ class SGAnimation:
         #self.img_wavefield.set_cmap("RdBu")
         
 
-        main_ax.set_title(r'Staggered Grid P-Wavefield $O(\Delta t^{2}, h^{4})$')
+        main_ax.set_title(title)
         main_ax.set_xticks(range(0, nx+1, np.int(nx/5)))
         main_ax.set_yticks(range(0, ny+1, np.int(ny/5)))
         main_ax.set_xlabel('Grid-points in X axis')
         main_ax.set_ylabel('Grid-points in Y axis')
         
         
-        vmin = -10.0
-        vmax = 10.0
+        vmin = -2.0
+        vmax = 2.0
         
         self.img_wavefield.set_alpha(0.95)
         self.img_wavefield.set_clim(vmin, vmax)
@@ -93,6 +98,7 @@ class SGAnimation:
         print("Temporal discretization: ", self.dt," s")
         print("Spatial discretization: ", dx, " m")
         #print("Number of gridpoints per minimum wavelength: ", self.lampda_min/self._dx)
+        print("Wavefield Min-Max: ", np.min(wavefield), " - ",  np.max(wavefield))
         print('===========================================================\n')   
 
         model_size_text_template = "Model size - X: %.3fm (%d x %.6fm), Y: %.3fm (%d x %.6fm)"
@@ -148,7 +154,7 @@ class SGAnimation:
         seis_ax0.set_yticks((vmin, 0, vmax))
         self.seis_line0 = matplotlib.lines.Line2D((0.0, 0.0), (0.0, 0.0), c=rec1_color)
         seis_ax0.set_xlim(0, len(self.t))
-        seis_ax0.set_ylim(-10, 10)
+        seis_ax0.set_ylim(vmin, vmax)
         seis_ax0.add_line(self.seis_line0)
 
         #seis_ax1.set_title('Receiver 2 (' + rec2_color + ')')
@@ -158,7 +164,7 @@ class SGAnimation:
         seis_ax1.set_yticks((vmin, 0, vmax))
         self.seis_line1 = matplotlib.lines.Line2D(self.t, wavefield[:, self._yrec2, self._xrec2], c=rec2_color)
         seis_ax1.set_xlim(0, len(self.t))
-        seis_ax1.set_ylim(-10, 10)
+        seis_ax1.set_ylim(vmin, vmax)
         seis_ax1.add_line(self.seis_line1)        
 
         #seis_ax2.set_title('Receiver 3 (' + rec3_color + ')')
@@ -168,7 +174,7 @@ class SGAnimation:
         seis_ax2.set_yticks((vmin, 0, vmax))
         self.seis_line2 = matplotlib.lines.Line2D(self.t, wavefield[:, self._yrec3, self._xrec3], c=rec3_color)
         seis_ax2.set_xlim(0, len(self.t))
-        seis_ax2.set_ylim(-10, 10)
+        seis_ax2.set_ylim(vmin, vmax)
         seis_ax2.add_line(self.seis_line2)    
         
         
@@ -183,22 +189,14 @@ class SGAnimation:
 
     def __call__(self, it, *args):
 
-        print('Animating SG [' + str(it+1) + '/' + str(self.steps) +']')        
+        # if (it % 10 == 0):     
+        #     print('Animating SG [' + str(it+1) + '/' + str(self.steps) +']')        
         
         self.time_text.set_text(self.time_template % (it+1, self.steps, it*self.dt))
         
 
         self.img_wavefield.set_data(self.wavefield[it,:,:])
   
-        
-        # self.seismograms[0, it] = self.p[self._xrec1, self._yrec1]
-        # self.seismograms[1, it] = self.p[self._xrec2, self._yrec2]
-        # self.seismograms[2, it] = self.p[self._xrec3, self._yrec3]  
-    
-        # print()
-        # print(self.wavefield[0:it, self._yrec1, self._xrec1].shape)
-        # print()
-    
         self.seis_line0.set_data(self.nt[0:it], self.wavefield[0:it, self._yrec1, self._xrec1])
         self.seis_line1.set_data(self.nt[0:it], self.wavefield[0:it, self._yrec2, self._xrec2])
         self.seis_line2.set_data(self.nt[0:it], self.wavefield[0:it, self._yrec3, self._xrec3])
